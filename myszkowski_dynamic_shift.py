@@ -440,41 +440,46 @@ def decrypt_token(token: str, keyword: str) -> str:
 # ---------------------------------------------------------------------------
 # 9. CLI
 # ---------------------------------------------------------------------------
+def print_header(title: str):
+    print("\n\n" + "┌──────────────────────────────────────────────────────────┐")
+    print(f"│ {title:^56} │")
+    print("└──────────────────────────────────────────────────────────┘\n")
+
+
 def _main(argv: list[str] | None = None) -> int:
-    import argparse
     import sys
 
-    parser = argparse.ArgumentParser(
-        description="Transposisi Kolom Myszkowski + Dynamic Row Shift"
-    )
-    sub = parser.add_subparsers(dest="command", required=True)
-
-    p_enc = sub.add_parser("encrypt", help="enkripsi plaintext")
-    p_enc.add_argument("plaintext")
-    p_enc.add_argument("keyword")
-    p_enc.add_argument("--pad", default=DEFAULT_PADDING)
-    p_enc.add_argument("--mode", default=DEFAULT_MODE, choices=["strict", "strip"])
-    p_enc.add_argument("--json", action="store_true", help="tampilkan metadata JSON")
-
-    p_dec = sub.add_parser("decrypt", help="dekripsi token hasil encrypt --json")
-    p_dec.add_argument("token")
-    p_dec.add_argument("keyword")
-
-    args = parser.parse_args(argv)
+    print_header("MYSZKOWSKI + DYNAMIC ROW SHIFT")
+    print(" [1] Enkripsi (Plaintext -> Token)")
+    print(" [2] Dekripsi (Token -> Plaintext)\n")
+    choice = input("[+] Pilih menu\n    Pilihan (1/2): ").strip()
+    print("\n\n")
 
     try:
-        if args.command == "encrypt":
-            ciphertext, meta = encrypt(args.plaintext, args.keyword, args.pad, args.mode)
-            if args.json:
-                import json
+        if choice == "1":
+            print("[+] Masukkan data untuk Enkripsi")
+            plaintext = input("   Plaintext : ")
+            keyword = input("   Keyword   : ")
+            mode_input = input("   Mode [strict/strip] (tekan Enter untuk default 'strict'): ").strip()
+            mode = mode_input if mode_input in ("strict", "strip") else DEFAULT_MODE
+            print("\n")
 
-                print(json.dumps({"ciphertext": ciphertext, "metadata": meta.to_dict()}))
-            else:
-                print(meta.pack(ciphertext))
+            token = encrypt_token(plaintext, keyword, padding_character=DEFAULT_PADDING, mode=mode)
+            print("  HASIL TOKEN (Ciphertext + Metadata):")
+            print(f"  {token}\n\n")
+        elif choice == "2":
+            print("[+] Masukkan data untuk Dekripsi")
+            token = input("   Token     : ")
+            keyword = input("   Keyword   : ")
+            print("\n")
+
+            pt = decrypt_token(token, keyword)
+            print("  HASIL PLAINTEXT:")
+            print(f"  {pt}\n\n")
         else:
-            print(decrypt_token(args.token, args.keyword))
+            print("[!] Pilihan menu tidak valid.\n\n")
     except MyszkowskiError as exc:
-        print(f"Error: {exc}", file=sys.stderr)
+        print(f"\n[ERROR] {exc}\n\n", file=sys.stderr)
         return 2
     return 0
 

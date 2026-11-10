@@ -95,13 +95,79 @@ def super_decrypt(ciphertext: str, key: str) -> str:
     return playfair_decrypt(zigzag_decrypt(ciphertext), key)
 
 
-if __name__ == "__main__":
-    assert zigzag_encrypt("A6B8gxkrEphySgnqvtY1") == "AgESv68xrpygqt1BkhnY"
-    assert zigzag_decrypt("AgESv68xrpygqt1BkhnY") == "A6B8gxkrEphySgnqvtY1"
+def print_header(title: str):
+    print("\n\n" + "┌──────────────────────────────────────────────────────────┐")
+    print(f"│ {title:^56} │")
+    print("└──────────────────────────────────────────────────────────┘\n")
 
-    key = "Makassar, 6/21/2021"
-    pt = "Fakultas Ilmu Komputer"
-    ct = super_encrypt(pt, key)
-    print("Plaintext :", pt)
-    print("Ciphertext:", ct)
-    print("Dekripsi  :", super_decrypt(ct, key))
+
+if __name__ == "__main__":
+    print_header("KRYPTOS - CLASSICAL CRYPTOGRAPHY SUITE")
+    print(" [1] Super Cipher (Playfair + Zigzag)")
+    print(" [2] Myszkowski Columnar Transposition + Dynamic Row Shift")
+    print(" [0] Keluar\n")
+    
+    prog_choice = input("[+] Pilih program\n    Pilihan (0-2): ").strip()
+    print("\n\n")
+
+    if prog_choice == "1":
+        print_header("SUPER CIPHER (PLAYFAIR + ZIGZAG)")
+        print(" [1] Enkripsi (Plaintext -> Ciphertext)")
+        print(" [2] Dekripsi (Ciphertext -> Plaintext)\n")
+        choice = input("[+] Pilih menu\n    Pilihan (1/2): ").strip()
+        print("\n")
+
+        if choice == "1":
+            print("[+] Masukkan data untuk Enkripsi")
+            plaintext = input("    Plaintext : ")
+            keyword = input("    Keyword   : ")
+            print("\n")
+            ct = super_encrypt(plaintext, keyword)
+            print("  HASIL CIPHERTEXT:")
+            print(f"  {ct}\n\n")
+        elif choice == "2":
+            print("[+] Masukkan data untuk Dekripsi")
+            ciphertext = input("   Ciphertext: ")
+            keyword = input("   Keyword   : ")
+            print("\n")
+            pt = super_decrypt(ciphertext, keyword)
+            print("  HASIL PLAINTEXT:")
+            print(f"  {pt}\n\n")
+        else:
+            print("[!] Pilihan menu tidak valid.\n\n")
+
+    elif prog_choice == "2":
+        print_header("MYSZKOWSKI + DYNAMIC ROW SHIFT")
+        print(" [1] Enkripsi (Plaintext -> Token)")
+        print(" [2] Dekripsi (Token -> Plaintext)\n")
+        choice = input("[+] Pilih menu\n   Pilihan (1/2): ").strip()
+        print("\n\n")
+
+        try:
+            if choice == "1":
+                print("[+] Masukkan data untuk Enkripsi")
+                plaintext = input("     Plaintext : ")
+                keyword = input("   Keyword   : ")
+                mode_input = input("   Mode [strict/strip] (tekan Enter untuk default 'strict'): ").strip()
+                mode = mode_input if mode_input in ("strict", "strip") else DEFAULT_MODE
+                print("\n")
+                
+                token = encrypt_token(plaintext, keyword, mode=mode)
+                print("  HASIL TOKEN (Ciphertext + Metadata):")
+                print(f"  {token}\n\n")
+            elif choice == "2":
+                print("[+] Masukkan data untuk Dekripsi")
+                token = input("   Token     : ")
+                keyword = input("   Keyword   : ")
+                print("\n")
+                pt = decrypt_token(token, keyword)
+                print("  HASIL PLAINTEXT:")
+                print(f"  {pt}\n\n")
+            else:
+                print("[!] Pilihan menu tidak valid.\n\n")
+        except MyszkowskiError as exc:
+            print(f"\n[ERROR] {exc}\n\n")
+    elif prog_choice == "0":
+        print("Keluar dari program. Terima kasih!\n\n")
+    else:
+        print("[!] Pilihan program tidak valid.\n\n")
