@@ -1,6 +1,5 @@
 import string
 
-
 ALPHABET = (
     "0" + string.ascii_uppercase + string.ascii_lowercase + "123456789"
     + "!@#$%^&*()-_=+[]{}\\|;:'\",./?<>`~"
