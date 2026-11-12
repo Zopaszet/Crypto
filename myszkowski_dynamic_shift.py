@@ -464,8 +464,18 @@ def _main(argv: list[str] | None = None) -> int:
             mode = mode_input if mode_input in ("strict", "strip") else DEFAULT_MODE
             print("\n")
 
-            token = encrypt_token(plaintext, keyword, padding_character=DEFAULT_PADDING, mode=mode)
-            print("  HASIL TOKEN (Ciphertext + Metadata):")
+            ciphertext, meta = encrypt(
+                plaintext, keyword, padding_character=DEFAULT_PADDING, mode=mode
+            )
+            token = meta.pack(ciphertext)
+
+            print("  HASIL ENKRIPSI:")
+            print(f"  {ciphertext}\n")
+            print("  METADATA:")
+            for field, value in meta.to_dict().items():
+                print(f"    {field:<18} : {value}")
+            print()
+            print("  TOKEN (untuk menu Dekripsi):")
             print(f"  {token}\n\n")
         elif choice == "2":
             print("[+] Masukkan data untuk Dekripsi")
