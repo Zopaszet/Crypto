@@ -1,18 +1,22 @@
 # Cara Menjalankan Proyek
 
-Panduan ini menjelaskan cara menyiapkan lingkungan, menjalankan kedua skrip, dan
-menjalankan test suite di repositori ini. Semua perintah dijalankan dari
-direktori root repositori.
+Panduan ini hanya membahas cara menyiapkan lingkungan dan menjalankan program di
+repositori ini. Semua perintah dijalankan dari direktori root repositori.
+
+Penjelasan algoritma, format token, dan perbedaan versi dinamis vs statis ada di
+[`SISTEM-KERJA.md`](SISTEM-KERJA.md).
 
 ## Isi repositori
 
 | File | Isi |
 |---|---|
 | `myszkowski_dynamic_shift.py` | Modul Myszkowski + Dynamic Row Shift beserta CLI interaktif (enkripsi/dekripsi). |
+| `myszkowski_static_key.py` | CLI ringkas dengan keyword tetap `BOROBUDUR`; memakai modul di atas. |
 | ` play_fair.py` | Menu "Kryptos": Super Cipher (Playfair + Zigzag) dan entri Myszkowski. **Nama file diawali satu spasi.** |
 | `test_myszkowski_dynamic_shift.py` | 51 test `unittest` untuk modul Myszkowski. |
 | `br.md` | Spesifikasi/rancangan algoritma (acuan implementasi). |
 | `IMPLEMENTASI.md` | Catatan implementasi dan hasil pengujian. |
+| `SISTEM-KERJA.md` | Penjelasan cara kerja sistem dan perbandingan skrip dinamis vs statis. |
 
 ## 1. Prasyarat
 
@@ -44,6 +48,9 @@ python3 myszkowski_dynamic_shift.py
 Setelah header kotak, tampil menu:
 
 ```text
+ [1] Enkripsi (Plaintext -> Token)
+ [2] Dekripsi (Token -> Plaintext)
+
 [+] Pilih menu
     Pilihan (1/2):
 ```
@@ -67,7 +74,7 @@ Perilaku mode:
   program diam-diam memakai `strict`.
 
 Spasi selalu dihapus saat normalisasi, sehingga `HELLO WORLD` menjadi
-`HELLOWORLD`.
+`HELLOWORLD`. Karakter padding selalu `X` dan tidak bisa diubah dari menu.
 
 Contoh sesi lengkap:
 
@@ -80,9 +87,6 @@ Contoh sesi lengkap:
    Keyword   : BOROBUDUR
    Mode [strict/strip] (tekan Enter untuk default 'strict'):
 
-  HASIL ENKRIPSI:
-  PKKEASXJNAKGAUABNTXGSIPGARXXASRNEAUA
-
   METADATA:
     original_length    : 32
     key_length         : 9
@@ -93,25 +97,21 @@ Contoh sesi lengkap:
 
   TOKEN (untuk menu Dekripsi):
   MDRS1|PKKEASXJNAKGAUABNTXGSIPGARXXASRNEAUA|32|9|X|4|strict|4
+
+  HASIL ENKRIPSI:
+  PKKEASXJNAKGAUABNTXGSIPGARXXASRNEAUA
 ```
 
-Keluaran enkripsi menampilkan ciphertext mentah sebagai hasil utama, diikuti
-metadata dari objek `Metadata`, lalu token portabel pada baris terakhir. Token
-inilah yang dipakai untuk dekripsi. Formatnya:
-
-```text
-MDRS1|<ciphertext>|<original_length>|<key_length>|<padding_character>|<padding_count>|<mode>|<rows>
-```
-
-Pada contoh di atas: ciphertext 36 karakter, panjang plaintext ternormalisasi 32,
-keyword 9 huruf, padding `X` sebanyak 4, mode `strict`, matriks 4 baris.
-Karakter padding di CLI selalu `X` (tidak bisa diubah dari menu).
+Urutan blok keluaran selalu: **METADATA**, lalu **TOKEN**, lalu
+**HASIL ENKRIPSI**. Token adalah satu baris portabel berisi ciphertext dan
+metadata; salin seluruh baris itu untuk menu Dekripsi. Baris `HASIL ENKRIPSI` di
+akhir hanya menampilkan ciphertext mentah tanpa metadata. Arti tiap field di
+token dijelaskan di [`SISTEM-KERJA.md`](SISTEM-KERJA.md).
 
 ### 2.2 Dekripsi (pilih `2`)
 
-Dekripsi membutuhkan **token lengkap** (ciphertext + metadata) dan keyword yang
-sama seperti saat enkripsi. Ciphertext mentah tanpa metadata tidak bisa
-didekripsi lewat menu ini.
+Dekripsi membutuhkan **token lengkap** dan keyword yang sama seperti saat
+enkripsi. Ciphertext mentah tanpa metadata tidak bisa didekripsi lewat menu ini.
 
 ```text
 [+] Pilih menu
@@ -145,7 +145,68 @@ printf '1\nHALO123\nKEY\n\n' | python3 myszkowski_dynamic_shift.py
 [ERROR] Plaintext mengandung karakter yang tidak didukung: '1', '2', '3'. Gunakan hanya A-Z dan spasi, atau pilih mode='strip'.
 ```
 
-## 3. Menjalankan `" play_fair.py"`
+## 3. Menjalankan `myszkowski_static_key.py`
+
+Versi ringkas yang sama sekali tidak menanyakan keyword, mode, atau padding:
+keyword dipatok `BOROBUDUR`, mode `strict`, dan padding `X`. Pengguna hanya
+mengetik plaintext (enkripsi) atau token (dekripsi).
+
+```bash
+python3 myszkowski_static_key.py
+```
+
+Menu yang muncul:
+
+```text
+ [1] Enkripsi (Plaintext -> Token)
+ [2] Dekripsi (Token -> Plaintext)
+ [0] Keluar
+
+[+] Pilih menu
+    Pilihan (1/2/0):
+```
+
+| Pilihan | Isi |
+|---|---|
+| `1` | Enkripsi (Plaintext -> Token) |
+| `2` | Dekripsi (Token -> Plaintext) |
+| `0` | Keluar |
+
+Contoh enkripsi (hanya satu input, yaitu plaintext):
+
+```bash
+printf '1\nPASUKAN SIAP BERANGKAT SEKARANG JUGA\n' | python3 myszkowski_static_key.py
+```
+
+```text
+  METADATA:
+    original_length    : 32
+    key_length         : 9
+    padding_character  : X
+    padding_count      : 4
+    normalization_mode : strict
+    rows               : 4
+
+  TOKEN (untuk menu Dekripsi):
+  MDRS1|PKKEASXJNAKGAUABNTXGSIPGARXXASRNEAUA|32|9|X|4|strict|4
+
+  HASIL ENKRIPSI:
+  PKKEASXJNAKGAUABNTXGSIPGARXXASRNEAUA
+```
+
+Pada menu `2`, cukup tempel token; hasilnya dicetak sebagai `HASIL PLAINTEXT:`
+diikuti teks ternormalisasi (kapital, tanpa spasi). Token dengan panjang keyword
+berbeda dari metadata gagal dengan `[ERROR] Panjang keyword (...) tidak cocok
+dengan metadata (...)`. Token dari skrip dinamis dapat diproses bila panjang
+keyword-nya 9, dan hasilnya benar hanya jika keyword itu sama dengan
+`BOROBUDUR`. Detail perbedaannya ada di
+[`SISTEM-KERJA.md`](SISTEM-KERJA.md).
+
+Pilihan `0` keluar dengan kode `0`, pilihan tak dikenal mencetak
+`[!] Pilihan menu tidak valid.` dan juga keluar dengan kode `0`, sedangkan input
+tidak valid mencetak `[ERROR] ...` ke stderr dan keluar dengan kode `2`.
+
+## 4. Menjalankan `" play_fair.py"`
 
 Nama file diawali satu spasi. Path **wajib dikutip**, jika tidak shell akan
 mencari `play_fair.py` (tanpa spasi) dan gagal.
@@ -176,7 +237,8 @@ Catatan penting:
   `DEFAULT_MODE`, `encrypt_token`, `decrypt_token`, dan `MyszkowskiError` yang
   tidak didefinisikan maupun diimpor di ` play_fair.py`, sehingga setelah
   plaintext, keyword, dan mode diisi program berhenti dengan `NameError`. Untuk
-  Myszkowski, gunakan `myszkowski_dynamic_shift.py`.
+  Myszkowski, gunakan `myszkowski_dynamic_shift.py` atau
+  `myszkowski_static_key.py`.
 - Pilihan `1` berjalan lokal tanpa dependensi. Tabel Playfair di sini berukuran
   10x10 dengan alfabet 100 karakter (huruf besar, huruf kecil, angka, tanda
   baca, beberapa simbol, dan spasi), bukan 5x5 klasik.
@@ -198,59 +260,7 @@ printf '1\n1\nAB\nKEY\n' | python3 " play_fair.py"
   BC
 ```
 
-## 3.1 Menjalankan `myszkowski_static_key.py`
-
-Versi ringkas yang sama sekali tidak menanyakan keyword, mode, atau padding:
-keyword dipatok `BOROBUDUR`, mode `strict`, dan padding `X`, sehingga pengguna
-hanya mengetik plaintext (enkripsi) atau token (dekripsi). Token hanya bisa
-didekripsi bila dibuat dengan keyword tersebut.
-
-```bash
-python3 myszkowski_static_key.py
-```
-
-Menu yang muncul:
-
-```text
-[+] Pilih menu
-    Pilihan (1/2/0):
-```
-
-| Pilihan | Isi |
-|---|---|
-| `1` | Enkripsi (Plaintext -> Token) |
-| `2` | Dekripsi (Token -> Plaintext) |
-| `0` | Keluar |
-
-Contoh enkripsi (hanya satu input, yaitu plaintext):
-
-```bash
-printf '1\nPASUKAN SIAP BERANGKAT SEKARANG JUGA\n' | python3 myszkowski_static_key.py
-```
-
-```text
-  HASIL ENKRIPSI:
-  PKKEASXJNAKGAUABNTXGSIPGARXXASRNEAUA
-
-  METADATA:
-    original_length    : 32
-    key_length         : 9
-    padding_character  : X
-    padding_count      : 4
-    normalization_mode : strict
-    rows               : 4
-
-  TOKEN (untuk menu Dekripsi):
-  MDRS1|PKKEASXJNAKGAUABNTXGSIPGARXXASRNEAUA|32|9|X|4|strict|4
-```
-
-Pada menu `2`, cukup tempel token; hasilnya dicetak sebagai
-`HASIL PLAINTEXT:` diikuti teks ternormalisasi (kapital, tanpa spasi).
-Pilihan `0` keluar dengan kode `0`, pilihan tak dikenal mencetak
-`[!] Pilihan menu tidak valid.` dan juga keluar dengan kode `0`, sedangkan
-input tidak valid mencetak `[ERROR] ...` ke stderr dan keluar dengan kode `2`.
-
-## 4. Menjalankan test suite
+## 5. Menjalankan test suite
 
 Test memakai `unittest` bawaan Python (tidak ada `pytest`), dan file test punya
 blok `if __name__ == "__main__"`. Ada 51 test. Jalankan dari root repositori:
@@ -283,7 +293,7 @@ OK
 Jika muncul `ModuleNotFoundError: No module named 'myszkowski_dynamic_shift'`,
 berarti perintah dijalankan di luar root repositori.
 
-## 5. Contoh kerja: enkripsi lalu dekripsi
+## 6. Contoh kerja: enkripsi lalu dekripsi
 
 Contoh ini memakai plaintext dan keyword yang sama dengan fixture
 `TestPDFExample` di file test, sehingga hasilnya bisa dicocokkan.
@@ -297,12 +307,8 @@ printf '1\nPASUKAN SIAP BERANGKAT SEKARANG JUGA\nBOROBUDUR\n\n' | python3 myszko
 Empat baris input berurutan adalah: pilihan menu, plaintext, keyword, dan mode
 (kosong berarti `strict`). Karena stdin berupa pipe, prompt `input()` tetap
 dicetak tetapi tidak diikuti baris baru, jadi beberapa prompt terlihat menyatu.
-Baris hasilnya:
 
 ```text
-  HASIL ENKRIPSI:
-  PKKEASXJNAKGAUABNTXGSIPGARXXASRNEAUA
-
   METADATA:
     original_length    : 32
     key_length         : 9
@@ -313,6 +319,9 @@ Baris hasilnya:
 
   TOKEN (untuk menu Dekripsi):
   MDRS1|PKKEASXJNAKGAUABNTXGSIPGARXXASRNEAUA|32|9|X|4|strict|4
+
+  HASIL ENKRIPSI:
+  PKKEASXJNAKGAUABNTXGSIPGARXXASRNEAUA
 ```
 
 Langkah 2, dekripsi token tersebut:
@@ -336,22 +345,22 @@ python3 -c 'from myszkowski_dynamic_shift import decrypt_token; print(decrypt_to
 PASUKANSIAPBERANGKATSEKARANGJUGA
 ```
 
-Langkah 4, jalankan seluruh test (bagian 4). Jika berakhir dengan `OK`, setup
+Langkah 4, jalankan seluruh test (bagian 5). Jika berakhir dengan `OK`, setup
 sudah benar.
 
-## 6. Catatan dan troubleshooting
+## 7. Troubleshooting
 
 | Gejala | Penyebab dan solusi |
 |---|---|
 | `can't open file .../play_fair.py` | Nama file diawali spasi. Gunakan `python3 " play_fair.py"`. |
-| `NameError` saat memilih menu `2` di ` play_fair.py` | Cabang Myszkowski memakai nama yang tidak didefinisikan (`DEFAULT_MODE`, `encrypt_token`, `decrypt_token`, `MyszkowskiError`). Gunakan `python3 myszkowski_dynamic_shift.py`. |
+| `NameError` saat memilih menu `2` di ` play_fair.py` | Cabang Myszkowski memakai nama yang tidak didefinisikan (`DEFAULT_MODE`, `encrypt_token`, `decrypt_token`, `MyszkowskiError`). Gunakan skrip Myszkowski yang berdiri sendiri. |
 | `[ERROR] Plaintext mengandung karakter yang tidak didukung: ...` | Mode `strict` menolak karakter selain A-Z. Hapus karakter tersebut atau pilih mode `strip`. |
 | `[ERROR] Plaintext tidak boleh kosong.` | Plaintext kosong; isi minimal satu karakter A-Z. |
 | `[ERROR] Plaintext kosong setelah normalisasi ...` | Mode `strip` membuang semua karakter yang dimasukkan. |
 | `[ERROR] Keyword hanya boleh berisi huruf A-Z.` | Keyword mengandung angka/tanda baca. Gunakan huruf saja. |
 | `[ERROR] Keyword tidak boleh kosong.` | Keyword kosong atau hanya spasi. |
 | `[ERROR] Token tidak valid.` | Yang dimasukkan bukan token lengkap (misalnya hanya ciphertext). Salin seluruh token hasil enkripsi. |
-| `[ERROR] Panjang keyword (...) tidak cocok dengan metadata (...)` | Keyword dekripsi harus sama panjang dengan keyword saat enkripsi. |
+| `[ERROR] Panjang keyword (...) tidak cocok dengan metadata (...)` | Keyword dekripsi harus sama panjang dengan keyword saat enkripsi. Keyword yang panjangnya sama tetapi berbeda tidak terdeteksi dan menghasilkan plaintext salah (metadata tidak diautentikasi). |
 | `[ERROR] Metadata tidak konsisten: ...` | Token rusak/terpotong (misalnya pemisah antar-field hilang). Enkripsi ulang. |
 | Mode yang diketik salah ketik tetap berjalan sebagai `strict` | Perilaku normal: hanya `strip` yang dikenali selain default. |
 
@@ -364,3 +373,6 @@ Hal lain yang perlu diketahui:
 - Algoritma ini murni transposisi (memindahkan posisi karakter, bukan
   menggantinya), sehingga tidak layak untuk melindungi data sensitif. Gunakan
   algoritma terstandar seperti AES-GCM untuk keperluan nyata.
+
+Penjelasan algoritma, metadata, dan perbandingan dinamis vs statis ada di
+[`SISTEM-KERJA.md`](SISTEM-KERJA.md).

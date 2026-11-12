@@ -469,14 +469,14 @@ def _main(argv: list[str] | None = None) -> int:
             )
             token = meta.pack(ciphertext)
 
-            print("  HASIL ENKRIPSI:")
-            print(f"  {ciphertext}\n")
             print("  METADATA:")
             for field, value in meta.to_dict().items():
                 print(f"    {field:<18} : {value}")
             print()
             print("  TOKEN (untuk menu Dekripsi):")
-            print(f"  {token}\n\n")
+            print(f"  {token}\n")
+            print("  HASIL ENKRIPSI:")
+            print(f"  {ciphertext}\n\n")
         elif choice == "2":
             print("[+] Masukkan data untuk Dekripsi")
             token = input("   Token     : ")

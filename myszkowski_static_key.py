@@ -54,14 +54,14 @@ def _run_encrypt() -> None:
     ciphertext, meta = encrypt(plaintext, KEYWORD, padding_character=PADDING, mode=MODE)
     token = meta.pack(ciphertext)
 
-    print("  HASIL ENKRIPSI:")
-    print(f"  {ciphertext}\n")
     print("  METADATA:")
     for field, value in meta.to_dict().items():
         print(f"    {field:<18} : {value}")
     print()
     print("  TOKEN (untuk menu Dekripsi):")
-    print(f"  {token}\n\n")
+    print(f"  {token}\n")
+    print("  HASIL ENKRIPSI:")
+    print(f"  {ciphertext}\n\n")
 
 
 def _run_decrypt() -> None:
